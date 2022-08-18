@@ -5,19 +5,21 @@ import Button from '@mui/material/Button'
 
 import { EditingState, IntegratedEditing, ViewState } from '@devexpress/dx-react-scheduler'
 import {
-    ConfirmationDialog,
-    Scheduler,
-    WeekView,
-    Toolbar,
-    DateNavigator,
     Appointments,
     AppointmentTooltip,
     AppointmentForm,
+    ConfirmationDialog,
+    DateNavigator,
+    DragDropProvider,
+    Scheduler,
+    Toolbar,
+    WeekView,
 } from '@devexpress/dx-react-scheduler-material-ui'
 
 import { Alert } from './Alert'
 
 import { advanceDate, printAvailability, validateDateTime } from 'functions'
+// const allowDrag = ({ id }) => !dragDisableIds.has(id)
 
 export const DevExpress = () => {
     const [openAlert, setOpenAlert] = useState(false)
@@ -147,7 +149,9 @@ export const DevExpress = () => {
                     showOpenButton
                     showDeleteButton
                 />
-                <AppointmentForm 
+                <AppointmentForm />
+                <DragDropProvider
+                    // allowDrag={allowDrag}
                 />
             </Scheduler>
         </Paper>
