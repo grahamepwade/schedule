@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ThemeProvider } from '@mui/material/styles'
 
-import { DevExpress, Header } from './components'
+import { Availability, Header } from './components'
 import './App.css'
  
 function App() {
@@ -10,9 +10,7 @@ function App() {
     // <ThemeProvider>
     <div>
       <Header />
-      {/* <WeekSelector /> */}
-
-      <DevExpress />
+      <Availability />
     </div>
     // </ThemeProvider>
   );

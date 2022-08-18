@@ -1,4 +1,4 @@
-import react, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import Paper from '@mui/material/Paper'
 import Button from '@mui/material/Button'
@@ -19,9 +19,8 @@ import {
 import { Alert } from './Alert'
 
 import { advanceDate, printAvailability, validateDateTime } from 'functions'
-// const allowDrag = ({ id }) => !dragDisableIds.has(id)
 
-export const DevExpress = () => {
+export const Availability = () => {
     const [openAlert, setOpenAlert] = useState(false)
     const [alertMessage, setAlertMessage] = useState('')
     const [appointments, setAppointments] = useState([])
@@ -150,9 +149,7 @@ export const DevExpress = () => {
                     showDeleteButton
                 />
                 <AppointmentForm />
-                <DragDropProvider
-                    // allowDrag={allowDrag}
-                />
+                <DragDropProvider />
             </Scheduler>
         </Paper>
     )
