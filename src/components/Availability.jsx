@@ -1,7 +1,27 @@
 import React, { useEffect, useState } from 'react'
 
 import Paper from '@mui/material/Paper'
-import Button from '@mui/material/Button'
+import { createTheme, ThemeProvider } from '@mui/material/styles'
+import { 
+    amber as muiAmber, 
+    blue as muiBlue, 
+    blueGrey as muiBlueGrey, 
+    cyan as muiCyan, 
+    deepOrange as muiDeepOrange,
+    deepPurple as muiDeepPurple,
+    green as muiGreen,
+    grey as muiGrey,
+    indigo as muiIndigo,
+    lightBlue as muiLightBlue,
+    lightGreen as muiLightGreen,
+    lime as muiLime,
+    orange as muiOrange,
+    pink as muiPink,
+    purple as muiPurple,
+    red as muiRed,
+    teal as muiTeal,
+    yellow as muiYellow
+} from '@mui/material/colors'
 
 import { EditingState, IntegratedEditing, ViewState } from '@devexpress/dx-react-scheduler'
 import {
@@ -16,16 +36,44 @@ import {
     WeekView,
 } from '@devexpress/dx-react-scheduler-material-ui'
 
-import { Alert } from './Alert'
+import { advanceDate, validateDateTime, updateAvailability } from 'functions'
+import { Alert, ColorPalette, ToolbarPrintButton } from 'components'
 
-import { advanceDate, printAvailability, validateDateTime } from 'functions'
 
 export const Availability = () => {
     const [openAlert, setOpenAlert] = useState(false)
     const [alertMessage, setAlertMessage] = useState('')
     const [appointments, setAppointments] = useState([])
-
     const [viewDate, setViewDate] = useState(new Date())
+    const [openColorPalette, setOpenColorPalette] = useState(false)
+    const [selectedColor, setSelectedColor] = useState(muiBlue)
+
+    const theme = createTheme({
+        palette: {
+          primary: selectedColor
+        }
+    })
+
+    let muiColors = {
+        red : muiRed,
+        deepOrange : muiDeepOrange,
+        orange : muiOrange,
+        amber : muiAmber,
+        yellow : muiYellow,
+        lime : muiLime,
+        lightGreen : muiLightGreen,
+        green : muiGreen,
+        teal : muiTeal,
+        cyan : muiCyan,
+        lightBlue : muiLightBlue,
+        blue : muiBlue,
+        indigo : muiIndigo,
+        deepPurple : muiDeepPurple,
+        purple : muiPurple,
+        pink : muiPink,
+        blueGrey : muiBlueGrey,
+        grey : muiGrey
+    }
 
     useEffect(() => {
         //if today is Saturday, display following week
@@ -36,28 +84,20 @@ export const Availability = () => {
     }, [viewDate])
 
 
-    const handleCloseAlert = (close) => {
-        close ? setOpenAlert(false) : setOpenAlert(true)
+    const handleCloseAlert = () => {
+        setOpenAlert(false)
     }
 
-
-    const handleClickPrint = () => {
-        printAvailability(appointments)
+    const handleSelectColor = (color) => {
+        setSelectedColor(muiColors[color])
     }
 
+    const handleOpenColorPalette = () => {
+        setOpenColorPalette(true)
+    }
 
-    const ToolbarPrintButton = () => {
-        return (
-            <Toolbar.FlexibleSpace>
-                <Button 
-                    variant='outlined' 
-                    style={{ width: '-webkit-max-content' }}
-                    onClick={() => handleClickPrint()}
-                >
-                    Print Availability
-                </Button>
-            </Toolbar.FlexibleSpace>
-        )
+    const handleClosePalette = () => {
+        setOpenColorPalette(false)
     }
 
 
@@ -72,26 +112,19 @@ export const Availability = () => {
 
 
     const handleCommitChanges = ({ added, changed, deleted }) => {
-        let tempAppts = [...appointments]
+        let error = 0
+        let tempAppts = []
 
         if (added) {
-            const newID = appointments.length > 0 ? appointments[appointments.length - 1].id + 1 : 0
-            added.notes = added.notes === undefined ? '' : added.notes
-
             let roundedStartDate = handleDateTimeValidation(new Date(added.startDate))
             added.startDate = roundedStartDate
 
             let roundedEndDate = handleDateTimeValidation(new Date(added.endDate))
             added.endDate = roundedEndDate
-
-            tempAppts.push({id: newID, ...added})
-            setAppointments(tempAppts)
         }
 
         if (changed) {
-            let error = 0
             const changedObject = Object.values(changed)[0]
-            console.log("ChangedObject", changedObject)
             if (changedObject['startDate']) {
                 let roundedStartDate = handleDateTimeValidation(new Date(changedObject.startDate))
                 if (isNaN(roundedStartDate.getTime())) { error = 1 }
@@ -103,54 +136,52 @@ export const Availability = () => {
                 if (isNaN(roundedEndDate.getTime())) { error = 1 }
                 changedObject.endDate = roundedEndDate
             }
-
-            if (error === 0) {
-                tempAppts = tempAppts.map(appointment => (
-                    changed[appointment.id] ? { ...appointment, ...changedObject } : appointment
-                ))
-            }
-            setAppointments(tempAppts)
+            changed[0] = changedObject
         }
-
-        if (deleted !== undefined) {
-            tempAppts = tempAppts.filter(appointment => appointment.id !== deleted)
+        
+        if (error === 0) {
+            tempAppts = updateAvailability(appointments, added, changed, deleted)
             setAppointments(tempAppts)
         }
     }
 
 
     return (
-        <Paper>
-            <Alert isOpen={openAlert} message={alertMessage} closeAlert={handleCloseAlert} />
-            <Scheduler
-                data={appointments}
-            >
-                <ViewState
-                    defaultCurrentDate={viewDate}
-                />
-                <Toolbar
-                    flexibleSpaceComponent={ToolbarPrintButton}
-                />
-                <DateNavigator />
-                <EditingState
-                    onCommitChanges={handleCommitChanges}
-                />
-                <IntegratedEditing />
-                <WeekView 
-                    startDayHour={9}
-                    endDayHour={17}
-                    excludedDays={[0, 6]}
-                    cellDuration={60}
-                />
-                <ConfirmationDialog />
-                <Appointments data={appointments}/>
-                <AppointmentTooltip 
-                    showOpenButton
-                    showDeleteButton
-                />
-                <AppointmentForm />
-                <DragDropProvider />
-            </Scheduler>
-        </Paper>
+        <ThemeProvider theme={theme}>
+            <Paper>
+                <Alert isOpen={openAlert} message={alertMessage} closeAlert={handleCloseAlert} />
+                <ColorPalette isOpen={openColorPalette} closePalette={handleClosePalette} colorObject={muiColors} selectColor={handleSelectColor}/>
+                <Scheduler
+                    data={appointments}
+                >
+                    <ViewState
+                        defaultCurrentDate={viewDate}
+                    />
+                    <Toolbar
+                        flexibleSpaceComponent={() => <ToolbarPrintButton appts={appointments} openColorPalette={handleOpenColorPalette}/>}
+                    />
+                    <DateNavigator />
+                    <EditingState
+                        onCommitChanges={handleCommitChanges}
+                    />
+                    <IntegratedEditing />
+                    <WeekView 
+                        startDayHour={8}
+                        endDayHour={18}
+                        excludedDays={[0, 6]}
+                        cellDuration={60}
+                        
+                    />
+                    <ConfirmationDialog />
+                    <Appointments data={appointments}/>
+                    <AppointmentTooltip 
+                        showOpenButton
+                        showDeleteButton
+                    />
+                    <AppointmentForm />
+                    <DragDropProvider />
+                </Scheduler>
+            </Paper>
+        </ThemeProvider>
     )
 }

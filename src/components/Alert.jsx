@@ -1,4 +1,4 @@
-import react from 'react'
+import React from 'react'
 
 import Button from '@mui/material/Button'
 import Dialog from '@mui/material/Dialog'
@@ -11,7 +11,7 @@ import Paper from '@mui/material/Paper'
 
 export const Alert = ({ isOpen, message, closeAlert }) => {
     const handleClose = () => {
-        closeAlert(true)
+        closeAlert()
     }
 
     return (
